@@ -1,0 +1,368 @@
+/* ── Snap Cube Mosaic Generator ───────────────────────────────────
+   Screen styles first, print styles at the bottom. No frameworks.
+   ---------------------------------------------------------------- */
+
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --ink: #1d2026;
+  --ink-soft: #5b6270;
+  --line: #d8dbe2;
+  --accent: #2b6fd9;
+  --accent-ink: #ffffff;
+  --radius: 10px;
+
+  /* Physical cube pitch on the printed mat. 2 cm per cube. */
+  --cube-mm: 20;
+  --print-scale: 1;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.app-header {
+  padding: 24px 24px 8px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.app-header h1 { margin: 0 0 4px; font-size: 1.6rem; }
+.tagline { margin: 0; color: var(--ink-soft); }
+
+.warnings {
+  max-width: 1400px;
+  margin: 12px auto;
+  padding: 12px 16px;
+  background: #fff4e5;
+  border: 1px solid #f0c48a;
+  border-radius: var(--radius);
+  color: #6b4310;
+  font-size: 0.9rem;
+}
+.warnings ul { margin: 6px 0 0; padding-left: 20px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 24px 40px;
+}
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.panel h2 {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel h3 {
+  margin: 22px 0 8px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.panel h3:first-of-type { margin-top: 6px; }
+
+.step {
+  display: inline-grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.8rem;
+}
+
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+select, input[type="text"], input[type="number"], input[type="file"] {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  color: inherit;
+}
+input[type="number"] { width: 90px; }
+
+.scale-row { display: flex; align-items: center; gap: 10px; }
+
+.hint { margin: 6px 0 0; font-size: 0.8rem; color: var(--ink-soft); }
+.hint-inline { font-size: 0.78rem; color: var(--ink-soft); font-weight: 400; }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.check input { margin: 0; }
+
+kbd {
+  background: #eceef2;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 4px;
+  font: 0.85em ui-monospace, monospace;
+}
+
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+.btn {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.btn:hover { background: #f0f2f6; }
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+
+/* ── Colour swatch picker ─────────────────────────────────────── */
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+.swatch {
+  position: relative;
+  width: 46px; height: 46px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.swatch[aria-checked="true"] {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(43, 111, 217, 0.35);
+}
+.swatch .swatch-key {
+  position: absolute;
+  bottom: 1px; right: 3px;
+  font-size: 0.6rem;
+  opacity: 0.65;
+  font-weight: 600;
+}
+.swatch-empty {
+  background:
+    linear-gradient(45deg, #e6e8ec 25%, transparent 25%, transparent 75%, #e6e8ec 75%),
+    linear-gradient(45deg, #e6e8ec 25%, #fff 25%, #fff 75%, #e6e8ec 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 6px 6px;
+  color: var(--ink-soft);
+}
+
+/* ── The editable grid — styled like real snap cubes ──────────── */
+.grid-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 14px;
+  background: #e9ebef;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+.grid {
+  display: grid;
+  gap: 4px;                     /* visible gaps between cubes */
+  touch-action: none;
+}
+.cell {
+  position: relative;
+  width: var(--cell-px, 44px);
+  height: var(--cell-px, 44px);
+  border: none;
+  border-radius: 8px;           /* rounded squares */
+  padding: 0;
+  cursor: pointer;
+  background: #dfe2e8;
+}
+.cell.filled {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+              inset 0 2px 0 rgba(255, 255, 255, 0.25);
+}
+/* the centre stud every snap cube has */
+.cell.filled::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+.cell.empty {
+  background:
+    linear-gradient(45deg, #dcdfe5 25%, transparent 25%, transparent 75%, #dcdfe5 75%),
+    linear-gradient(45deg, #dcdfe5 25%, #eef0f3 25%, #eef0f3 75%, #dcdfe5 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+}
+.cell:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ── Inventory ────────────────────────────────────────────────── */
+.inventory { list-style: none; margin: 0; padding: 0; }
+.inventory li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 0.9rem;
+}
+.inv-chip {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex: none;
+}
+.inv-count { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
+.inventory-total {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.share-status { font-size: 0.82rem; color: var(--ink-soft); min-height: 1.2em; margin: 8px 0 0; }
+
+.app-footer {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* ── Print area: hidden on screen, the whole page when printing ── */
+#print-area { display: none; }
+
+@media print {
+  @page { margin: 12mm; }
+
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  #print-area { display: block; }
+
+  .print-header h1 { margin: 0 0 2mm; font-size: 16pt; }
+  .print-header p { margin: 0 0 5mm; font-size: 9pt; color: #333; }
+
+  /* True-size grid. Cell pitch = 20 mm × scale. */
+  .print-grid {
+    display: grid;
+    gap: 0;
+    margin-bottom: 6mm;
+    break-inside: avoid;
+  }
+  .print-cell {
+    width: calc(var(--cube-mm) * var(--print-scale) * 1mm);
+    height: calc(var(--cube-mm) * var(--print-scale) * 1mm);
+    border: 0.3mm solid #000;
+    display: grid;
+    place-items: center;
+    font: 700 calc(var(--cube-mm) * var(--print-scale) * 0.34mm) system-ui, sans-serif;
+    /* keep the printer honest about the swatch fill */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-cell.empty {
+    border-style: dotted;
+    border-color: #999;
+    background: #fff;
+    color: #bbb;
+  }
+
+  .print-ruler-block { break-inside: avoid; margin-bottom: 5mm; }
+  .print-ruler-label { font-size: 8.5pt; margin: 0 0 1.5mm; }
+  .print-ruler {
+    position: relative;
+    height: 9mm;
+    border-left: 0.3mm solid #000;
+    border-bottom: 0.3mm solid #000;
+    width: calc(100 * var(--print-scale) * 1mm);
+  }
+  .print-tick {
+    position: absolute;
+    bottom: 0;
+    width: 0;
+    border-left: 0.3mm solid #000;
+    height: 3mm;
+  }
+  .print-tick.major { height: 6mm; }
+  .print-tick span {
+    position: absolute;
+    top: -4.2mm;
+    left: 0.6mm;
+    font-size: 7pt;
+  }
+
+  .print-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8mm;
+    break-inside: avoid;
+  }
+  .print-columns h2 {
+    font-size: 10pt;
+    margin: 0 0 2mm;
+    border-bottom: 0.3mm solid #000;
+    padding-bottom: 1mm;
+  }
+  .print-legend { list-style: none; margin: 0; padding: 0; font-size: 9pt; }
+  .print-legend li {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    padding: 0.6mm 0;
+  }
+  .print-chip {
+    width: 4mm; height: 4mm;
+    border: 0.25mm solid #000;
+    display: grid;
+    place-items: center;
+    font-size: 6.5pt;
+    font-weight: 700;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snap Cube Mosaic Generator</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header no-print">
+  <h1>Snap Cube Mosaic Generator</h1>
+  <p class="tagline">
+    Turn a picture into a buildable snap-cube design. Everything runs inside this
+    browser — no image is ever uploaded anywhere.
+  </p>
+</header>
+
+<div id="warnings" class="warnings no-print" hidden></div>
+
+<main class="layout no-print">
+
+  <!-- ── 1. Source ─────────────────────────────────────────────── -->
+  <section class="panel">
+    <h2><span class="step">1</span> Start a design</h2>
+
+    <div class="field">
+      <label for="template-select">Built-in template</label>
+      <select id="template-select">
+        <option value="">— choose a template —</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="image-input">Or upload an image</label>
+      <input type="file" id="image-input" accept="image/*">
+      <p class="hint">
+        Flat-colour pixel art works best. Transparent areas become empty cells.
+      </p>
+    </div>
+
+    <div class="field">
+      <label for="grid-size">Grid size</label>
+      <select id="grid-size">
+        <option value="5x6">5 × 6 — small shape</option>
+        <option value="6x8">6 × 8 — medium</option>
+        <option value="10x10" selected>10 × 10 — classic plate</option>
+      </select>
+    </div>
+
+    <label class="check">
+      <input type="checkbox" id="white-empty">
+      Treat near-white as empty
+      <span class="hint-inline">(for art on a white background)</span>
+    </label>
+
+    <div class="field">
+      <label for="design-name">Design name</label>
+      <input type="text" id="design-name" placeholder="Untitled design" maxlength="60">
+    </div>
+  </section>
+
+  <!-- ── 2. Editor ─────────────────────────────────────────────── -->
+  <section class="panel panel-wide">
+    <h2><span class="step">2</span> Edit the design</h2>
+
+    <p class="hint">
+      Pick a colour, then click or drag across the grid to paint.
+      Right-click a cube to remove it. Number keys <kbd>1</kbd>–<kbd>0</kbd> pick
+      colours, <kbd>E</kbd> picks the eraser, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes.
+    </p>
+
+    <div id="swatches" class="swatches" role="radiogroup" aria-label="Active colour"></div>
+
+    <div class="grid-wrap">
+      <div id="grid" class="grid" aria-label="Mosaic design grid"></div>
+    </div>
+
+    <div class="row">
+      <button id="undo-btn" class="btn" type="button">Undo</button>
+      <button id="clear-btn" class="btn" type="button">Clear grid</button>
+      <button id="fill-btn" class="btn" type="button">Fill empty cells</button>
+    </div>
+  </section>
+
+  <!-- ── 3. Outputs ────────────────────────────────────────────── -->
+  <section class="panel">
+    <h2><span class="step">3</span> Build &amp; share</h2>
+
+    <h3>Cube inventory</h3>
+    <ul id="inventory" class="inventory"></ul>
+    <p id="inventory-total" class="inventory-total"></p>
+
+    <h3>Printable build mat</h3>
+    <div class="field">
+      <label for="print-scale">Printer scale&nbsp;%</label>
+      <div class="scale-row">
+        <input type="number" id="print-scale" value="100" min="50" max="150" step="0.5">
+        <span class="hint-inline">printers lie — calibrate with the ruler</span>
+      </div>
+    </div>
+    <button id="print-btn" class="btn btn-primary" type="button">Print build mat</button>
+    <p class="hint">
+      Print once, measure the ruler on the page with a real ruler, then adjust the
+      scale % until 10&nbsp;cm measures 10&nbsp;cm. Print again and the cubes will
+      sit exactly on the squares.
+    </p>
+
+    <h3>Save &amp; share</h3>
+    <div class="row">
+      <button id="export-json-btn" class="btn" type="button">Download JSON</button>
+      <button id="import-json-btn" class="btn" type="button">Import JSON</button>
+      <input type="file" id="import-json-input" accept="application/json,.json" hidden>
+    </div>
+    <div class="row">
+      <button id="share-btn" class="btn" type="button">Copy share link</button>
+    </div>
+    <p id="share-status" class="share-status" role="status"></p>
+  </section>
+
+</main>
+
+<footer class="app-footer no-print">
+  <p>
+    Runs entirely offline — works opened straight from a file, no server needed.
+    Colour matching uses CIELAB with CIEDE2000 distance.
+  </p>
+</footer>
+
+<!-- ── Print-only build mat ────────────────────────────────────── -->
+<div id="print-area" aria-hidden="true">
+  <div class="print-header">
+    <h1 id="print-title">Untitled design</h1>
+    <p id="print-meta"></p>
+  </div>
+
+  <div id="print-grid" class="print-grid"></div>
+
+  <div class="print-ruler-block">
+    <p class="print-ruler-label">
+      Calibration ruler — this line should measure exactly 10&nbsp;cm.
+      If it does not, change the scale&nbsp;% and print again.
+    </p>
+    <div id="print-ruler" class="print-ruler"></div>
+  </div>
+
+  <div class="print-columns">
+    <div>
+      <h2>Colour key</h2>
+      <ul id="print-legend" class="print-legend"></ul>
+    </div>
+    <div>
+      <h2>Cubes needed</h2>
+      <ul id="print-inventory" class="print-legend"></ul>
+    </div>
+  </div>
+</div>
+
+<script src="palette.js"></script>
+<script src="templates.js"></script>
+<script src="color.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
