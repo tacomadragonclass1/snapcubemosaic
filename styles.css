@@ -278,7 +278,11 @@ kbd {
 #print-area { display: none; }
 
 @media print {
-  @page { margin: 12mm; }
+  /* A 10-wide grid at true size is 200 mm across. Letter's printable width with
+     12 mm margins is only 191.9 mm, so the browser shrinks the page to fit and the
+     cubes no longer match the squares — which defeats the whole point of the mat.
+     5 mm margins leave 205.9 mm on Letter and 200 mm on A4, so nothing is scaled. */
+  @page { margin: 5mm; }
 
   .no-print { display: none !important; }
   body { background: #fff; }
@@ -293,6 +297,16 @@ kbd {
     gap: 0;
     margin-bottom: 6mm;
     break-inside: avoid;
+    /* Never let the grid be squeezed by its container — true size is the point. */
+    width: max-content;
+  }
+
+  .print-note {
+    font-size: 8.5pt;
+    margin: 0 0 4mm;
+    padding: 1.5mm 2mm;
+    border: 0.3mm solid #000;
+    font-weight: 700;
   }
   .print-cell {
     width: calc(var(--cube-mm) * var(--print-scale) * 1mm);
